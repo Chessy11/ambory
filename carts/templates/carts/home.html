@@ -1,0 +1,83 @@
+  
+{% extends "base.html" %}
+
+
+{% block content %}
+<h1>Cart</h1>
+
+{% if cart.products.exists %}
+<table class="table">
+  <thead>
+    <tr>
+      <th>#</th>
+      <th>Product Name</th>
+      <th>Product Price</th>
+    </tr>
+    <div id="paypal-button-container"></div>
+  </thead>
+  <tbody>
+    {% for product in cart.products.all %}
+    <tr>
+      <th scope="row">{{ forloop.counter }}</th>
+      <td><a href='{{ product.get_absolute_url }}'>{{ product.title }}</a>
+
+      	{% include 'products/snippets/update-cart.html' with product=product cart=cart in_cart=True %}
+      </td>
+      <td>{{ product.price }}</td>
+    </tr>
+    {% endfor %}
+    <tr>
+      <td colspan="2"></td>
+      <td><b>Subtotal</b> {{ cart.subtotal }}</td>
+    </tr>
+    <tr>
+      <td colspan="2"></td>
+      <td><b>Total</b> {{ cart.total }}</td>
+    </tr>
+  </tbody>
+</table>
+  <script src="https://www.paypal.com/sdk/js?client-id=AQ42TWqrD1bD69KRnGIPKgSqdhyirLMj9u8BowcYB4mRDuCz2xcdr1ZZvRT0K4IFdIbqSXgVQHqjo6hG&currency=USD"></script>
+
+      <script>
+
+        var total = '{{cart.total}}'
+        // Render the PayPal button into #paypal-button-container
+        paypal.Buttons({
+           style: {
+                color:  'blue',
+                shape:  'rect',
+                label:  'pay',
+                height: 40
+            },
+
+
+            // Set up the transaction
+            createOrder: function(data, actions) {
+                return actions.order.create({
+                    purchase_units: [{
+                        amount: {
+                            value: total
+                        }
+                    }]
+                });
+            },
+
+            // Finalize the transaction
+            onApprove: function(data, actions) {
+                return actions.order.capture().then(function(details) {
+                    // Show a success message to the buyer
+                    alert('Transaction completed by ' + details.payer.name.given_name + '!');
+                });
+            }
+
+
+        }).render('#paypal-button-container');
+    </script>
+    </script>
+
+{% else %}
+<p class='lead'>Cart is empty</p>
+{% endif %}
+
+
+{% endblock %}
